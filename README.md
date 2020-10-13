@@ -33,6 +33,10 @@
 
 webpack 可以把除了 JS 文件之外的其他资源，都看作是一个个的模块，最终打包成一个`bundle`，发布到生产环境。很推荐大家去看一本交《深入浅出 webpack》的书，讲的很透彻，webpack 通过一个`webpack.config.js`的文件配置打包的过程，当然在实际的开发过程中，可能针对不同的环境，需要做特殊的配置，因而会有例如`webpack.base.js`,`webpack.dev.conf.js`等等，这些大同小异。之前的 vue-cli@2 就是这样的目录结构。更多的关于 webpack 的原理，可以去查阅她的[文档](https://webpack.js.org/),里面说的满详细的，这里就基于下面的一个小教程，来带大家熟悉 webpack，进而可以对 vue-cli 的打包过程来进行优化。
 
+[`Babel`](https://www.babeljs.cn/)则是一个 js 转译器，负责把新的、尚未在浏览器中实现的 es 新功能转换成浏览器能看懂的代码的过程，当然随着`Babel`的发展，她能做的不止于此。
+
+关于`Babel`，中文名巴别塔；是《圣经·旧约·创世记》第 11 章故事中人们建造的塔。根据篇章记载，当时人类联合起来兴建希望能通往天堂的高塔；为了阻止人类的计划，上帝让人类说不同的语言，使人类相互之间不能沟通，计划因此失败，人类自此各散东西。此事件，为世上出现不同语言和种族提供解释。 这个名字很符合这个编译器的定位。
+
 ## 从 0 开始，搭建一个 vue+ts 开发环境
 
 现在我们首先来初始化一个 nodejs 的文件夹，运行一下的语句:
@@ -43,23 +47,33 @@ cd vue-from-zero
 npm init -y
 ```
 
-这样我们就得到了一个初始的 node 项目目录了。在安装依赖之前，我们需要给目录添加git,并且设置gitignore。这样可以通过git来控制版本，gitignore则可以忽略接下来安装的依赖包，以及之后开发中可能的密码等不想要上传到github等代码管理平台的文件。
+这样我们就得到了一个初始的 node 项目目录了。在安装依赖之前，我们需要给目录添加 git,并且设置 gitignore。这样可以通过 git 来控制版本，gitignore 则可以忽略接下来安装的依赖包，以及之后开发中可能的密码等不想要上传到 github 等代码管理平台的文件。
 
 运行`git init`来初始化，新建一个`.gitignore`文件，内容为：`/node_modules`，表示忽略此目录。
 
 接下来就是安装依赖的过程，你可以一个一个的安装,当然我推荐你直接复制我[源代码]()里面的 package.json 中的依赖，然后运行`npm i`或者`yarn`来进行安装，这样比较快，而且版本应该和本问写作的时候比较类似，不容易出现由于依赖版本不一致导致的可能的问题。当然本教程之后会解释为什么要安装这些依赖。
 
------
+---
 
 接着，我们来看一下复制的`package.json`里面，我们引入了哪些包。
 
-为了能使用webpack,新建`webpack.config.js`，并在`package.json`新建以下脚本：
+最主要的包就是 webpack 了，我们基于 webpack 来进行项目的搭建。在`devDependencies`中安装了这些包：
+
+```json
+devDependencies:{
+    "webpack": "^4.44.2",
+    "webpack-bundle-analyzer": "^3.9.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0"
+}
+```
+
+为了能使用 webpack,新建`webpack.config.js`，并在`package.json`新建以下脚本：
 
 ```json
 "build": "npx webpack --config ./webpack.config.js",
 "dev": "webpack-dev-server"
 ```
-
 
 ## 基于 vue-cli，对打包进行优化
 

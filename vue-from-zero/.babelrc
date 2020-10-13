@@ -19,10 +19,12 @@
 		]
 	],
 	"plugins": [
-    ["@babel/plugin-proposal-decorators", { "legacy": true }],
+		// https://babeljs.io/docs/en/babel-plugin-proposal-decorators
+		// Use the legacy (stage 1) decorators syntax and behavior.
+		// 对顺序有要求，要先include decorator, then class
+		["@babel/plugin-proposal-decorators", { "legacy": true }],
 		"@babel/proposal-class-properties",
 		"@babel/proposal-object-rest-spread",
-		"@babel/plugin-transform-runtime",
-
+		"@babel/plugin-transform-runtime"
 	]
 }
