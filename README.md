@@ -75,6 +75,120 @@ devDependencies:{
 "dev": "webpack-dev-server"
 ```
 
+接下来就是配置 webpack,在 `webpack.config.js` 中：
+
+```js
+const path = require("path");
+const webpack = require("webpack");
+// 导出一个具有特殊属性配置的对象
+module.exports = {
+	mode: "development",
+	entry: ["./src/main.js"] /* 入口文件模块路径 */,
+	output: {
+		/* 出口文件模块所属目录，必须是一个绝对路径 */
+		path: path.join(__dirname, "./dist/"),
+		filename: "bundle.js" /* 打包的结果文件名称 */,
+	},
+	devServer: {
+		// 配置webpack-dev-server的www目录
+		contentBase: "./dist",
+		hot: true,
+		port: 3000,
+	},
+	resolve: {
+		// 默认的解析扩展名
+		extensions: [".vue", ".ts", ".js"],
+		alias: {
+			// 这里是配置别名，
+			// 对于下面的例子，就是把 B/main.js => src/main.js
+			B: path.resolve(__dirname, "./src/"),
+		},
+	},
+};
+```
+
+上面的就是基本的 webpack 配置，此时如果运行 `npm run build` 的话可以把文件打包成功嘛？
+
+一般来说，还需要对项目中的除了 js 之外的文件，例如样式 CSS 文件，html（当然现在的 SPA 一般只有一个 html 文件），以及其他的字体文件，图像等都打包成一个整体，这就需要 webpack 的`loader` 配置了，loader 类似于一个管道，输入就是原始的文件，输出经过转换能够被 webpack 核心引擎解析的结果。在本项目中可以这样写：
+
+```js
+module.exports = {
+	module: {
+		rules: [
+			{
+				test: /\.scss$/i,
+				exclude: /node_modules/,
+				use: ["style-loader", "css-loader", "sass-loader"],
+			},
+			{
+				test: /.(jpg|png|gif|svg)$/,
+				use: ["file-loader"],
+			},
+			{
+				test: /\.(tsx|ts|js)$/,
+				exclude: /(node_modules|bower_components)/, //排除掉node_module目录
+				use: "babel-loader",
+			},
+			{
+				test: /\.vue$/,
+				exclude: /(node_modules|bower_components)/,
+				use: "vue-loader",
+			},
+			{
+				test: /\.(js|vue)$/,
+				include: ["/src"],
+				exclude: /node_modules/,
+				use: "eslint-loader",
+			},
+		],
+	},
+};
+```
+
+上面就是一些很典型的 loader 的写法，可以看出 loader 通过正则表达式的方法实现对特定的文件后缀的解析，之后用 include/exclude 来判断需要包含的文件夹范围。而 use 配置的是使用的 loader，接受数组字符串，当然也接受对象。
+对于 scss 文件，需要进行多层的转换，因此传了一个包含三个参数的数组，**倒序**依次解析。
+
+如果说 loader 是 webpack 的总线的话，那么 plugin 就是给 webpack 创造更多可能的模块了，plugin 和 loader 的区别在于 loader 主要关注文件的转换，而 plugin 则是贯穿全生命周期的，从而为 webpack 实现更多的功能。
+
+本项目中主要使用的 plugin 有以下几个：
+
+```js
+const htmlWebpackPlugin = require("html-webpack-plugin");
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
+	.BundleAnalyzerPlugin;
+const VueLoaderPlugin = require("vue-loader/lib/plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+
+module.exports = {
+	plugins: [
+		// 该插件可以把index.html打包到bundle.js文件所属目录，跟着bundle走
+		// 同时也会自动在index.html中注入script引用链接，并且引用的资源名称，也取决于打包的文件名称
+		new htmlWebpackPlugin({
+			template: "./index.html",
+        }),
+        // 检查打包体积的plugin
+        // 配置之后，编译完成时不显示网页，保存静态的html文件到/reports文件夹下，并附上时间。
+		new BundleAnalyzerPlugin({
+			analyzerMode: "static",
+			openAnalyzer: false,
+			reportFilename: `../reports/report-${new Date().getTime()}.html`,
+        }),
+        // vue-loader所需的plugin
+		new VueLoaderPlugin(),
+		//HMR的插件(HMR只能webpack-dev-server下使用)
+		new webpack.HotModuleReplacementPlugin(),
+		// 编译的时候清空dist文件夹
+		new CleanWebpackPlugin(),
+	],
+};
+```
+这样我们的webpack配置就完成啦.
+
+1. /cli-template/output.js
+2. babel-loader
+3. eslint-loader
+4. 细说一下 loader到底做了什么工作，那么多的loader我该选哪个呢
+
 ## 基于 vue-cli，对打包进行优化
 
 ## 总结
